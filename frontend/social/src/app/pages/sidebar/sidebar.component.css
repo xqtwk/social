@@ -1,0 +1,12 @@
+.lowest:hover {
+  background-color: rgba(247,249,249,1.00);;
+}
+.nav-link:hover {
+  background-color: rgba(247,249,249,1.00);;
+}
+.custom-dropdown-toggle::after {
+  content: none !important;
+}
+.active-link {
+  background-color: rgba(247,249,249,1.00); /* Set the desired background color */
+}
