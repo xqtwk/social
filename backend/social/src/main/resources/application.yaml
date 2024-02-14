@@ -1,0 +1,27 @@
+spring:
+  lifecycle:
+    timeout-per-shutdown-phase: 20s
+  datasource:
+    url: jdbc:postgresql://localhost:5432/mydatabase
+    username: myuser
+    password: secret
+    driver-class-name: org.postgresql.Driver
+  jpa:
+    hibernate:
+      ddl-auto: update
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+        format_sql: true
+    show-sql: true
+  main:
+    web-application-type: servlet
+application:
+  security:
+    jwt:
+      secret-key: F51836B87EEF55C18A0A33EB8E79B217B77FD3C7F78CE65117ED1F19022BECCC
+      expiration: 86400000 # a day(24h)
+      refresh-token:
+        expiration: 604800000 # 7 days(168h)
+server:
+  shutdown: graceful
