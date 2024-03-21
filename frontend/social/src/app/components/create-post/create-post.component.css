@@ -1,0 +1,7 @@
+textarea:focus {
+  outline: none;
+}
+textarea {
+  resize:none;
+  overflow:hidden;
+}
