@@ -1,6 +1,15 @@
-import { Component } from '@angular/core';
+import {Component, inject, TemplateRef} from '@angular/core';
 import {RouterLink, RouterLinkActive} from "@angular/router";
-import {NgbDropdown, NgbDropdownItem, NgbDropdownMenu, NgbDropdownToggle, NgbNav} from "@ng-bootstrap/ng-bootstrap";
+import {
+  NgbCollapseModule,
+  NgbDropdown,
+  NgbDropdownItem,
+  NgbDropdownMenu,
+  NgbDropdownToggle,
+  NgbNav,
+  NgbDatepickerModule,
+  NgbOffcanvas
+} from "@ng-bootstrap/ng-bootstrap";
 
 @Component({
   selector: 'app-sidebar',
@@ -12,11 +21,39 @@ import {NgbDropdown, NgbDropdownItem, NgbDropdownMenu, NgbDropdownToggle, NgbNav
     NgbDropdownItem,
     NgbDropdownToggle,
     NgbNav,
-    RouterLinkActive
+    RouterLinkActive,
+    NgbCollapseModule,
+    NgbNav,
+    NgbDatepickerModule
   ],
   templateUrl: './sidebar.component.html',
   styleUrl: './sidebar.component.css'
 })
 export class SidebarComponent {
-  active = 'top';
+  isMenuCollapsed = true;
+  private canvasService = inject(NgbOffcanvas);
+
+  constructor() {
+  }
+
+  openCanvas(content: TemplateRef<any>) {
+    this.canvasService.open(content, {ariaLabelledBy: 'canvasMenuTitle'}).result.then(
+      (result) => {
+        console.log(`Closed with: ${result}`);
+      },
+      (reason) => {
+        console.log(`Dismissed ${this.getDismissReason(reason)}`);
+      }
+    );
+  }
+
+  private getDismissReason(reason: any): string {
+    if (reason === 'ESC') {
+      return 'by pressing ESC';
+    } else if (reason === 'BACKDROP_CLICK') {
+      return 'by clicking on the backdrop';
+    } else {
+      return `with: ${reason}`;
+    }
+  }
 }

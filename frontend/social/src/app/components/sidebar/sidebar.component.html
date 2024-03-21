@@ -1,39 +1,122 @@
-<div class="d-flex flex-column flex-shrink-0 p-3" style="width: 280px;">
-  <a routerLink="home" class="d-flex align-items-center mb-3 mb-md-0 me-md-auto link-dark text-decoration-none">
-    <span class="fs-3">Socialsocialclub</span>
-  </a>
-  <hr>
-  <ul class="nav nav-pills flex-column mb-auto">
-    <li class="nav-item mb-1">
-      <a routerLinkActive="active-link" routerLink="home" class="nav-link link-dark fs-4" aria-current="page">
-        Home
-      </a>
-    </li>
-    <li class="mb-1">
-      <a routerLink="messages" routerLinkActive="active-link" class="nav-link link-dark fs-4">
-        Messages
-      </a>
-    </li>
-    <li>
-      <a routerLink="friends" routerLinkActive="active-link" class="nav-link link-dark fs-4">
-        Friends
-      </a>
-    </li>
-    <li class="mb-1">
-      <a routerLink="groups" routerLinkActive="active-link" class="nav-link link-dark fs-4">
-        Groups
-      </a>
-    </li>
-  </ul>
-  <hr>
-  <div class="col lowest py-2 rounded">
-    <div ngbDropdown placement="top" class="d-block" id="dropdownBasic2" style="width: 100%;">
-      <div ngbDropdownToggle style="width: 100%;" class="fs-4 px-3 custom-dropdown-toggle" >
-        <span>Profile</span>
+<div class="d-flex flex-column flex-shrink-0  navbar navbar-expand-sm" [ngbCollapse]="isMenuCollapsed"
+     [horizontal]="true">
+  <button class="navbar-toggler mb-3 align-self-start" type="button" (click)="openCanvas(canvasMenu)">&#9776;
+  </button>
+  <ng-template #canvasMenu>
+    <div class="canvas-body col">
+      <div class="d-flex flex-column">
+        <a routerLink="home"
+           class="d-flex align-items-center mb-3 mb-md-0 me-md-auto link-dark text-decoration-none"
+           (click)="isMenuCollapsed = true">
+          <span class="fs-3">Socialclub</span>
+        </a>
+        <div class="">
+          <hr>
+        </div>
       </div>
-      <div ngbDropdownMenu aria-labelledby="dropdownBasic2" style="width: 130%;">
-        <button ngbDropdownItem class="my-1">Settings</button>
-        <button ngbDropdownItem class="my-1">Logout</button>
+      <ul class="nav nav-pills flex-column mb-auto navbar-nav">
+        <li class="nav-item mb-1">
+          <a routerLinkActive="active-link" routerLink="home" class="nav-link link-dark fs-4" aria-current="page"
+             (click)="isMenuCollapsed = true">
+            Home
+          </a>
+        </li>
+        <li class="mb-1">
+          <a routerLink="messages" routerLinkActive="active-link" class="nav-link link-dark fs-4"
+             (click)="isMenuCollapsed = true">
+            Messages
+          </a>
+        </li>
+        <li>
+          <a routerLink="friends" routerLinkActive="active-link" class="nav-link link-dark fs-4">
+            Friends
+          </a>
+        </li>
+        <li class="mb-1">
+          <a routerLink="groups" routerLinkActive="active-link" class="nav-link link-dark fs-4">
+            Groups
+          </a>
+        </li>
+        <li class="mb-1">
+          <a routerLink="profile" routerLinkActive="active-link" class="nav-link link-dark fs-4">
+            Profile
+          </a>
+        </li>
+      </ul>
+      <div class="col lowest py-2 rounded">
+        <div ngbDropdown placement="top" class="d-block flex-column" id="dropdownBasic3" style="width: 100%;">
+          <div ngbDropdownToggle style="width: 100%;" class="fs-4 custom-dropdown-toggle d-flex">
+            <div class="mx-1">/avatar/</div>
+            <span>wfdsq</span>
+          </div>
+          <div ngbDropdownMenu aria-labelledby="dropdownBasic2" style="width: 130%;">
+            <a routerLink="profile" class="nav-link link-dark">
+              <button ngbDropdownItem class="my-1">Profile</button>
+            </a>
+            <hr>
+            <button ngbDropdownItem class="my-1">Settings</button>
+            <button ngbDropdownItem class="my-1">Logout</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </ng-template>
+  <div class="row d-none d-sm-block w-100">
+    <div class="d-flex flex-column ">
+      <a routerLink="home"
+         class="d-flex align-items-center mb-3 mb-md-0 me-md-auto link-dark text-decoration-none d-none d-sm-block"
+         (click)="isMenuCollapsed = true">
+        <span class="fs-3">Socialclub</span>
+      </a>
+      <div class="mb-3 d-none d-sm-block">
+        <hr>
+      </div>
+    </div>
+
+    <ul class="nav nav-pills flex-column mb-auto navbar-nav">
+      <li class="nav-item mb-1">
+        <a routerLinkActive="active-link" routerLink="home" class="nav-link link-dark fs-4" aria-current="page"
+           (click)="isMenuCollapsed = true">
+          Home
+        </a>
+      </li>
+      <li class="mb-1">
+        <a routerLink="messages" routerLinkActive="active-link" class="nav-link link-dark fs-4"
+           (click)="isMenuCollapsed = true">
+          Messages
+        </a>
+      </li>
+      <li>
+        <a routerLink="friends" routerLinkActive="active-link" class="nav-link link-dark fs-4">
+          Friends
+        </a>
+      </li>
+      <li class="mb-1">
+        <a routerLink="groups" routerLinkActive="active-link" class="nav-link link-dark fs-4">
+          Groups
+        </a>
+      </li>
+      <li class="mb-1">
+        <a routerLink="profile" routerLinkActive="active-link" class="nav-link link-dark fs-4">
+          Profile
+        </a>
+      </li>
+    </ul>
+    <hr>
+    <div class="col lowest py-2 rounded">
+      <div ngbDropdown placement="top" class="d-block flex-column" id="dropdownBasic2" style="width: 100%;">
+        <div ngbDropdownToggle style="width: 100%;" class="fs-4 custom-dropdown-toggle d-flex">
+          <div class="mx-1">*0*</div>
+          <span>wfdsq</span>
+        </div>
+        <div ngbDropdownMenu aria-labelledby="dropdownBasic2" style="width: 130%;">
+          <a routerLink="profile" class="nav-link link-dark">
+            <button ngbDropdownItem class="my-1">Profile</button>
+          </a>
+          <hr>
+          <button ngbDropdownItem class="my-1">Settings</button>
+          <button ngbDropdownItem class="my-1">Logout</button>
+        </div>
       </div>
     </div>
   </div>
