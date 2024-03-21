@@ -1,9 +1,9 @@
 import { Routes } from '@angular/router';
-import {HomeComponent} from "./pages/home/home.component";
-import {ProfileComponent} from "./pages/profile/profile.component";
-import {GroupsComponent} from "./pages/groups/groups.component";
-import {MessagesComponent} from "./pages/messages/messages.component";
-import {FriendsComponent} from "./pages/friends/friends.component";
+import {HomeComponent} from "./components/home/home.component";
+import {ProfileComponent} from "./components/profile/profile.component";
+import {GroupsComponent} from "./components/groups/groups.component";
+import {MessagesComponent} from "./components/messages/messages.component";
+import {FriendsComponent} from "./components/friends/friends.component";
 
 export const routes: Routes = [
   {path: '', component: HomeComponent},
