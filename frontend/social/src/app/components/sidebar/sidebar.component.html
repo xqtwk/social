@@ -1,9 +1,9 @@
-<div class="d-flex flex-column flex-shrink-0  navbar navbar-expand-sm" [ngbCollapse]="isMenuCollapsed"
+<div class="d-flex flex-column flex-shrink-0  navbar navbar-expand-md" [ngbCollapse]="isMenuCollapsed"
      [horizontal]="true">
   <button class="navbar-toggler mb-3 align-self-start" type="button" (click)="openCanvas(canvasMenu)">&#9776;
   </button>
-  <ng-template #canvasMenu>
-    <div class="canvas-body col">
+  <ng-template #canvasMenu class="w-100">
+    <div class="canvas-body col m-3">
       <div class="d-flex flex-column">
         <a routerLink="home"
            class="d-flex align-items-center mb-3 mb-md-0 me-md-auto link-dark text-decoration-none"
@@ -61,7 +61,7 @@
       </div>
     </div>
   </ng-template>
-  <div class="row d-none d-sm-block w-100">
+  <div class="row d-none d-md-block w-100">
     <div class="d-flex flex-column ">
       <a routerLink="home"
          class="d-flex align-items-center mb-3 mb-md-0 me-md-auto link-dark text-decoration-none d-none d-sm-block"

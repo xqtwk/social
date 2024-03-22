@@ -1,4 +1,4 @@
-@media (max-width: 576px) {
+@media (max-width: 767px) {
   .border-sm-none {
     border-left: 0 !important;
   }
