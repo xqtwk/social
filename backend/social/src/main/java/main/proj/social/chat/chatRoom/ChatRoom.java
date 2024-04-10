@@ -5,6 +5,10 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import main.proj.social.chat.chatMessage.ChatMessage;
+import main.proj.social.user.entity.User;
+
+import java.util.List;
 
 @Data
 @AllArgsConstructor
@@ -18,7 +22,14 @@ public class ChatRoom {
     @Column(name = "id", nullable = false)
     private Long id;
 
-    private String chatId;
-    private String senderUsername;
-    private String recipientUsername;
+    @OneToMany(mappedBy = "chatRoom")
+    private List<ChatMessage> messages;
+
+    @ManyToOne
+    @JoinColumn(name = "sender_id")
+    private User sender;
+
+    @ManyToOne
+    @JoinColumn(name = "recipient_id")
+    private User recipient;
 }

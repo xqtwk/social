@@ -2,11 +2,14 @@ package main.proj.social.chat.chatMessage;
 
 
 import lombok.RequiredArgsConstructor;
+import main.proj.social.chat.chatRoom.ChatRoom;
 import main.proj.social.chat.chatRoom.ChatRoomService;
+import main.proj.social.user.UserRepository;
+import main.proj.social.user.entity.User;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 
@@ -15,24 +18,32 @@ import java.util.List;
 public class ChatMessageService {
     private final ChatMessageRepository repository;
     private final ChatRoomService chatRoomService;
+    private final UserRepository userRepository;
 
     public ChatMessage save(ChatMessage chatMessage) {
-        System.out.println("save method fired");
-        var chatId = chatRoomService
-                .getChatRoomId(chatMessage.getSenderUsername(), chatMessage.getRecipientUsername(), true)
+        ChatRoom chatRoom = chatRoomService
+                .getChatRoom(chatMessage.getSender(), chatMessage.getRecipient(), true)
                 .orElseThrow(() -> new RuntimeException("Chat room could not be created"));
-        chatMessage.setChatId(chatId);
+
+        chatMessage.setChatRoom(chatRoom);
         return repository.save(chatMessage);
     }
 
     public List<ChatMessage> findChatMessages(String senderUsername, String recipientUsername) {
         System.out.println("findchatmessages fired");
-        var chatId = chatRoomService.getChatRoomId(senderUsername, recipientUsername, false);
+        var chatId = chatRoomService.getChatRoom(
+                userRepository.findByUsername(senderUsername).orElseThrow(() ->
+                        new UsernameNotFoundException("User not found")),
+                userRepository.findByUsername(recipientUsername).orElseThrow(() ->
+                        new UsernameNotFoundException("User not found")),
+                false);
 
         // Retrieve messages for both directions (sender to recipient and recipient to sender)
-        List<ChatMessage> senderToRecipientMessages = chatId.map(id -> repository.findByChatIdAndSenderUsername(id, senderUsername))
+        List<ChatMessage> senderToRecipientMessages = chatId.map(id ->
+                        repository.findByChatRoomIdAndSenderUsername(id.getId(), senderUsername))
                 .orElse(new ArrayList<>());
-        List<ChatMessage> recipientToSenderMessages = chatId.map(id -> repository.findByChatIdAndSenderUsername(id, recipientUsername))
+        List<ChatMessage> recipientToSenderMessages = chatId.map(id ->
+                        repository.findByChatRoomIdAndSenderUsername(id.getId(), recipientUsername))
                 .orElse(new ArrayList<>());
 
         // Combine and sort messages by timestamp or any relevant criteria
