@@ -7,7 +7,7 @@ import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import main.proj.social.security.dto.AuthenticationResponse;
 import main.proj.social.security.dto.AuthenticationRequest;
-import main.proj.social.security.dto.RegisterRequest;
+import main.proj.social.security.dto.RegistrationRequest;
 import main.proj.social.security.dto.VerificationRequest;
 import main.proj.social.security.jwt.JwtService;
 import main.proj.social.security.jwt.token.Token;
@@ -38,7 +38,7 @@ public class AuthenticationService {
     private final TwoFactorAuthenticationService twoFactorAuthenticationService;
 
     // REGISTRATION
-    public AuthenticationResponse register(RegisterRequest request) {
+    public AuthenticationResponse register(RegistrationRequest request) {
         var user = User.builder()
                 .username(request.getUsername())
                 .email(request.getEmail())
@@ -54,7 +54,6 @@ public class AuthenticationService {
         var jwtToken = jwtService.generateToken(user);
         var refreshToken = jwtService.generateRefreshToken(user);
         saveUserToken(savedUser, jwtToken);
-        System.out.println();
         return AuthenticationResponse.builder()
                 .accessToken(jwtToken) // so user doesn't have to log in after registering by himself
                 .secretImageUri(twoFactorAuthenticationService.generateQrCodeImageUri(user.getSecret()))
@@ -129,12 +128,6 @@ public class AuthenticationService {
         if (username != null) {
             var user = this.userRepository.findByUsername(username)
                     .orElseThrow();
-
-            /* TO ALSO REVOKE REFRESH TOKEN
-            var isTokenValid = tokenRepository.findByToken(refreshToken)
-                    .map(t -> !t.isExpired() && !t.isRevoked())
-                    .orElse(false);
-            */
 
             if (jwtService.isTokenValid(refreshToken, user)) {
                 var accessToken = jwtService.generateToken(user);
