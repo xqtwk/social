@@ -3,23 +3,26 @@ package main.proj.social.security;
 
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-import main.proj.social.security.dto.AuthenticationRequest;
-import main.proj.social.security.dto.AuthenticationResponse;
-import main.proj.social.security.dto.RegisterRequest;
-import main.proj.social.security.dto.VerificationRequest;
+import main.proj.social.security.dto.*;
 import main.proj.social.security.service.AuthenticationService;
 import main.proj.social.security.tfa.MfaSetupResponse;
 import main.proj.social.security.tfa.MfaToggleRequest;
 import main.proj.social.security.tfa.TwoFactorAuthenticationService;
 import main.proj.social.user.UserRepository;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.web.bind.annotation.*;
 
 import java.io.IOException;
 import java.security.Principal;
+import java.util.NoSuchElementException;
+
+import static main.proj.social.security.service.ErrorService.extractDataIntegrityViolationExceptionErrorMessage;
 
 @RestController
 @RequestMapping("/auth")
@@ -28,22 +31,43 @@ public class AuthenticationController {
     private final AuthenticationService authenticationService;
     private final UserRepository userRepository;
     private final TwoFactorAuthenticationService twoFactorAuthenticationService;
+
     @PostMapping("/register")
-    public ResponseEntity<AuthenticationResponse> register(@RequestBody RegisterRequest request) {
-        AuthenticationResponse response = authenticationService.register(request);
-        if (!request.isMfaEnabled()) {
-            return ResponseEntity.ok(response);
-        } else {
-            return ResponseEntity.ok(AuthenticationResponse.builder()
-                    .mfaEnabled(true)
-                    .secretImageUri(response.getSecretImageUri())
-                    .build());
+    public ResponseEntity<?> register(@RequestBody @Valid RegistrationRequest request) {
+        try {
+            AuthenticationResponse response = authenticationService.register(request);
+            if (!request.isMfaEnabled()) {
+                return ResponseEntity.ok(response);
+            } else {
+                return ResponseEntity.ok(AuthenticationResponse.builder()
+                        .mfaEnabled(true)
+                        .secretImageUri(response.getSecretImageUri())
+                        .build());
+            }
+        } catch (DataIntegrityViolationException e) {
+            return ResponseEntity.badRequest().body(extractDataIntegrityViolationExceptionErrorMessage(e));
         }
     }
 
     @PostMapping("/authenticate")
-    public ResponseEntity<AuthenticationResponse> authenticate(@RequestBody AuthenticationRequest request) {
-        return ResponseEntity.ok(authenticationService.authenticate(request));
+    public ResponseEntity<?> authenticate(@RequestBody AuthenticationRequest request) {
+        try {
+            AuthenticationResponse response = authenticationService.authenticate(request);
+
+            if (response.isMfaEnabled()) {
+                // MFA Enabled - Provide partial response for MFA flow
+                return ResponseEntity.ok(AuthenticationResponse.builder()
+                        .mfaEnabled(true)
+                        .build());
+            } else {
+                // Successful Authentication - Return full response
+                return ResponseEntity.ok(response);
+            }
+        } catch (NoSuchElementException e) {
+            return ResponseEntity.badRequest().body(new ErrorResponse("Invalid username or password"));
+        } catch (AuthenticationException e) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(new ErrorResponse("Invalid username or password"));
+        }
     }
 
     @PostMapping("/refresh-token")
@@ -60,6 +84,7 @@ public class AuthenticationController {
     ) {
         return ResponseEntity.ok(authenticationService.verifyCode(verificationRequest));
     }
+
     @PostMapping("/toggle-mfa")
     public ResponseEntity<?> toggleMfa(@RequestBody MfaToggleRequest request, Principal principal) {
         System.out.println(request.getOtpCode());

@@ -48,7 +48,6 @@ public class UserService {
         User user = userRepository.findByUsername(principalUser.getUsername())
                 .orElseThrow(() -> new EntityNotFoundException("User not found"));
 
-
         return new UserPrivateDataResponse(
                 user.getId(),
                 user.getUsername(),
