@@ -8,14 +8,10 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 
 import java.util.*;
@@ -73,6 +69,7 @@ class PostServiceTest {
     @Test
     void createPostSuccess() {
         // Set up specific for this test
+        PostRequest postRequest= new PostRequest("Test content", null); // For creating a new post, parentId is null
         User newUser = new User(); // Assuming User has an all-args constructor or setters
         newUser.setId(1L);
         newUser.setUsername("user1");
@@ -91,7 +88,7 @@ class PostServiceTest {
         });
 
         // Execute
-        Post newNewPost = postService.createPost("user1", "Test content");
+        Post newNewPost = postService.createPost("user1", postRequest);
 
         // Validate
         assertNotNull(newNewPost);
@@ -103,11 +100,11 @@ class PostServiceTest {
 
     @Test
     void createPostUserNotFound() {
+        PostRequest postRequest= new PostRequest("Test content", null); // For creating a new post, parentId is null
+
         when(userRepository.findByUsername("user1")).thenThrow(new UsernameNotFoundException("User not found"));
 
-        assertThrows(UsernameNotFoundException.class, () -> {
-            postService.createPost("user1", "Test content");
-        });
+        assertThrows(UsernameNotFoundException.class, () -> postService.createPost("user1", postRequest));
     }
 
     @Test
@@ -125,16 +122,12 @@ class PostServiceTest {
     @Test
     void editPostNotFound() {
         when(postRepository.findById(1L)).thenThrow(new EntityNotFoundException("Post not found"));
-        assertThrows(EntityNotFoundException.class, () -> {
-            postService.editPost(1L, "user1", "Updated content");
-        });
+        assertThrows(EntityNotFoundException.class, () -> postService.editPost(1L, "user1", "Updated content"));
     }
     @Test
     void editPostUnauthorizedUser() {
         when(postRepository.findById(1L)).thenReturn(java.util.Optional.of(post));
-        assertThrows(IllegalStateException.class, () -> {
-            postService.editPost(1L, "user2", "Updated content");
-        });
+        assertThrows(IllegalStateException.class, () -> postService.editPost(1L, "user2", "Updated content"));
     }
 
     @Test
@@ -151,18 +144,14 @@ class PostServiceTest {
     void deletePostNotFound() {
         when(postRepository.findById(1L)).thenThrow(new EntityNotFoundException("Post not found"));
 
-        assertThrows(EntityNotFoundException.class, () -> {
-            postService.deletePost(1L, "user1");
-        });
+        assertThrows(EntityNotFoundException.class, () -> postService.deletePost(1L, "user1"));
     }
 
     @Test
     void deletePostUnauthorizedUser() {
         when(postRepository.findById(1L)).thenReturn(java.util.Optional.of(post));
 
-        assertThrows(IllegalStateException.class, () -> {
-            postService.deletePost(1L, "user2");
-        });
+        assertThrows(IllegalStateException.class, () -> postService.deletePost(1L, "user2"));
     }
 
     @Test
@@ -182,9 +171,7 @@ class PostServiceTest {
     void getPostsByUserNotFound() {
         when(userRepository.findByUsername("user1")).thenThrow(new UsernameNotFoundException("User not found"));
 
-        assertThrows(UsernameNotFoundException.class, () -> {
-            postService.getPostsByUser("user1");
-        });
+        assertThrows(UsernameNotFoundException.class, () -> postService.getPostsByUser("user1"));
     }
 
     @Test

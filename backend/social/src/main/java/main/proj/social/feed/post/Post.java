@@ -1,5 +1,6 @@
 package main.proj.social.feed.post;
 
+import jakarta.annotation.Nullable;
 import jakarta.persistence.*;
 import lombok.*;
 import main.proj.social.feed.like.Like;
@@ -27,6 +28,14 @@ public class Post {
 
     @OneToMany(mappedBy = "post")
     private List<Like> likes;
+
+    @ManyToOne
+    @Nullable
+    @JoinColumn(name = "parent_id")
+    private Post parent;  // Link to the parent post if this is a reply
+
+    @OneToMany(mappedBy = "parent", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<Post> replies;  // Replies to this post
 
     private Date created_timestamp;
 

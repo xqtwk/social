@@ -4,7 +4,6 @@ import jakarta.persistence.EntityNotFoundException;
 
 
 import lombok.RequiredArgsConstructor;
-import main.proj.social.feed.follow.FollowRepository;
 import main.proj.social.feed.like.LikeRepository;
 import main.proj.social.user.UserRepository;
 import main.proj.social.user.entity.User;
@@ -26,12 +25,20 @@ public class PostService {
     }
 
     @Transactional
-    public Post createPost(String username, String content) {
+    public Post createPost(String username, PostRequest postRequest) {
         User user = userRepository.findByUsername(username)
                 .orElseThrow(() -> new UsernameNotFoundException("User not found"));
+
         Post post = new Post();
         post.setAuthor(user);
-        post.setContent(content); // Assume Post has a content field.
+        post.setContent(postRequest.getContent());
+
+        if (postRequest.getParentId() != null) {
+            Post parent = postRepository.findById(postRequest.getParentId())
+                    .orElseThrow(() -> new EntityNotFoundException("Parent post not found"));
+            post.setParent(parent);
+        }
+
         return postRepository.save(post);
     }
 
@@ -64,5 +71,9 @@ public class PostService {
 
     public List<Post> getLikedPosts(Long userId) {
         return likeRepository.findLikedPostsByUserId(userId);
+    }
+
+    public List<Post> getAnswersToPost(Long parentPostId) {
+        return postRepository.findByParentId(parentPostId);
     }
 }
