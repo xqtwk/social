@@ -31,30 +31,6 @@ public class ChatRoomService {
                 });
     }
 
-   /* private String createChatId(User sender, User recipient) {
-        // Ensure the chatId is constructed consistently to enforce uniqueness
-        String chatId = String.format("%s_%s", sender.getUsername(), recipient.getUsername());
-
-        ChatRoom senderRecipient = ChatRoom
-                .builder()
-                .chatId(chatId)
-                .sender(sender)
-                .recipient(recipient)
-                .build();
-
-        ChatRoom recipientSender = ChatRoom
-                .builder()
-                .chatId(chatId)
-                .sender(recipient)
-                .recipient(sender)
-                .build();
-
-        chatRoomRepository.save(senderRecipient);
-        chatRoomRepository.save(recipientSender);
-
-        return chatId;
-    }*/
-
     public List<String> getChatListForUser(Principal principal) {
         User user = userRepository.findByUsername(principal.getName())
                 .orElseThrow(() -> new UsernameNotFoundException("User not found"));
