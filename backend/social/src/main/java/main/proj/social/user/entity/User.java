@@ -3,6 +3,8 @@ package main.proj.social.user.entity;
 
 import jakarta.persistence.*;
 import lombok.*;
+import main.proj.social.feed.like.Like;
+import main.proj.social.feed.post.Post;
 import main.proj.social.security.jwt.token.Token;
 import main.proj.social.user.entity.enums.Role;
 import org.springframework.lang.Nullable;
@@ -22,7 +24,7 @@ import java.util.List;
 public class User implements UserDetails {
     @Id
     @GeneratedValue
-    private long id;
+    private Long id;
     @Column(unique = true)
     private String username;
     @Column(unique = true)
@@ -37,6 +39,12 @@ public class User implements UserDetails {
 
     @OneToMany(mappedBy = "user", cascade = CascadeType.REMOVE, fetch = FetchType.LAZY)
     private List<Token> tokens;
+
+    @OneToMany(mappedBy = "user")
+    private List<Like> likes;
+
+    @OneToMany(mappedBy = "author")
+    private List<Post> posts;
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {

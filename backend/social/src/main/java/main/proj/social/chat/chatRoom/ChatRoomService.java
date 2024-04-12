@@ -1,8 +1,12 @@
 package main.proj.social.chat.chatRoom;
 
 import lombok.RequiredArgsConstructor;
+import main.proj.social.user.UserRepository;
+import main.proj.social.user.entity.User;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 
+import java.security.Principal;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -11,53 +15,36 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class ChatRoomService {
     private final ChatRoomRepository chatRoomRepository;
+    private final UserRepository userRepository;
 
-    public Optional<String> getChatRoomId(
-            String senderUsername,
-            String recipientUsername,
-            boolean createNewRoomIfNotExists
-    ) {
+    public Optional<ChatRoom> getChatRoom(User sender, User recipient, boolean createNewRoomIfNotExists) {
         return chatRoomRepository
-                .findBySenderUsernameAndRecipientUsername(senderUsername, recipientUsername)
-                .map(ChatRoom::getChatId)
+                .findBySenderUsernameAndRecipientUsername(sender.getUsername(), recipient.getUsername()) // Assuming you add this method to the repository
                 .or(() -> {
                     if(createNewRoomIfNotExists) {
-                        var chatId = createChatId(senderUsername, recipientUsername);
-                        return Optional.of(chatId);
+                        ChatRoom newChatRoom = new ChatRoom();
+                        newChatRoom.setSender(sender);
+                        newChatRoom.setRecipient(recipient);
+                        return Optional.of(chatRoomRepository.save(newChatRoom));
                     }
-
-                    return  Optional.empty();
+                    return Optional.empty();
                 });
     }
 
-    private String createChatId(String senderUsername, String recipientUsername) {
-        var chatId = String.format("%s_%s", senderUsername, recipientUsername);
+    public List<String> getChatListForUser(Principal principal) {
+        User user = userRepository.findByUsername(principal.getName())
+                .orElseThrow(() -> new UsernameNotFoundException("User not found"));
+        String username = user.getUsername();
 
-        ChatRoom senderRecipient = ChatRoom
-                .builder()
-                .chatId(chatId)
-                .senderUsername(senderUsername)
-                .recipientUsername(recipientUsername)
-                .build();
-
-        ChatRoom recipientSender = ChatRoom
-                .builder()
-                .chatId(chatId)
-                .senderUsername(recipientUsername)
-                .recipientUsername(senderUsername)
-                .build();
-
-        chatRoomRepository.save(senderRecipient);
-        chatRoomRepository.save(recipientSender);
-
-        return chatId;
-    }
-
-    public List<String> getChatListForUser(String username) {
         return chatRoomRepository.findBySenderUsernameOrRecipientUsername(username, username)
                 .stream()
-                .map(chatRoom -> chatRoom.getSenderUsername().equals(username) ? chatRoom.getRecipientUsername() : chatRoom.getSenderUsername())
+                .map(chatRoom ->
+                        chatRoom.getSender().getUsername().equals(username) ?
+                                chatRoom.getRecipient().getUsername() :
+                                chatRoom.getSender().getUsername()
+                )
                 .distinct()
                 .collect(Collectors.toList());
     }
+
 }
