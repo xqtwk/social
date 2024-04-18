@@ -29,7 +29,10 @@ public class FollowService {
                     return "Unfollowed";
                 })
                 .orElseGet(() -> {
-                    Follow follow = new Follow(null, follower, followed);
+                    Follow follow = Follow.builder().
+                            follower(follower).
+                            followed(followed)
+                            .build();
                     followRepository.save(follow);
                     return "Followed";
                 });
