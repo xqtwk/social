@@ -42,7 +42,7 @@ public class UserService {
                 .orElseThrow(() -> new RuntimeException("User not found with id: " + id));
     }
 
-    @Transactional
+    // @Transactional
     public UserPrivateDataResponse getPrivateUserData(Principal connectedUser) {
         User principalUser = (User) ((UsernamePasswordAuthenticationToken) connectedUser).getPrincipal();
         User user = userRepository.findByUsername(principalUser.getUsername())

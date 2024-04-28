@@ -1,6 +1,9 @@
 package main.proj.social.security;
 
 
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
@@ -25,13 +28,15 @@ import java.util.NoSuchElementException;
 import static main.proj.social.security.service.ErrorService.extractDataIntegrityViolationExceptionErrorMessage;
 
 @RestController
-@RequestMapping("/auth")
+@RequestMapping("api/v1/auth")
 @RequiredArgsConstructor
+@Tag(name = "Authentication")
 public class AuthenticationController {
     private final AuthenticationService authenticationService;
     private final UserRepository userRepository;
     private final TwoFactorAuthenticationService twoFactorAuthenticationService;
 
+    @Operation(summary = "New user registration")
     @PostMapping("/register")
     public ResponseEntity<?> register(@RequestBody @Valid RegistrationRequest request) {
         try {
@@ -48,7 +53,7 @@ public class AuthenticationController {
             return ResponseEntity.badRequest().body(extractDataIntegrityViolationExceptionErrorMessage(e));
         }
     }
-
+    @Operation(summary = "Authentication")
     @PostMapping("/authenticate")
     public ResponseEntity<?> authenticate(@RequestBody AuthenticationRequest request) {
         try {
@@ -70,6 +75,7 @@ public class AuthenticationController {
         }
     }
 
+    @Operation(summary = "Auth token refresh")
     @PostMapping("/refresh-token")
     public void refreshToken(
             HttpServletRequest request,
@@ -78,6 +84,7 @@ public class AuthenticationController {
         authenticationService.refreshToken(request, response);
     }
 
+    @Operation(summary = "Mfa code verification")
     @PostMapping("/verify")
     public ResponseEntity<?> verifyCode(
             @RequestBody VerificationRequest verificationRequest
@@ -85,6 +92,7 @@ public class AuthenticationController {
         return ResponseEntity.ok(authenticationService.verifyCode(verificationRequest));
     }
 
+    @Operation(summary = "Toggle on/off of mfa")
     @PostMapping("/toggle-mfa")
     public ResponseEntity<?> toggleMfa(@RequestBody MfaToggleRequest request, Principal principal) {
         System.out.println(request.getOtpCode());
@@ -119,6 +127,7 @@ public class AuthenticationController {
         }
     }
 
+    @Operation(summary = "Generate QR-code for mfa")
     @GetMapping("/mfa-setup")
     public ResponseEntity<?> getMfaSetup(Principal principal) {
         var user = userRepository.findByUsername(principal.getName())

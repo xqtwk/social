@@ -29,9 +29,10 @@ public class PostService {
         User user = userRepository.findByUsername(username)
                 .orElseThrow(() -> new UsernameNotFoundException("User not found"));
 
-        Post post = new Post();
-        post.setAuthor(user);
-        post.setContent(postRequest.getContent());
+        Post post = Post.builder()
+                .author(user)
+                .content(postRequest.getContent())
+                .build();
 
         if (postRequest.getParentId() != null) {
             Post parent = postRepository.findById(postRequest.getParentId())

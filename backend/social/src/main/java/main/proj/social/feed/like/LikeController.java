@@ -1,5 +1,8 @@
 package main.proj.social.feed.like;
 
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import main.proj.social.feed.post.Post;
@@ -16,10 +19,11 @@ import java.security.Principal;
 
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("/like")
+@RequestMapping("api/v1/likes")
+@Tag(name = "Likes")
 public class LikeController {
     private final LikeService likeService;
-
+    @Operation(summary = "Toggle like")
     @PostMapping("/{postId}")
     public ResponseEntity<String> toggleLike(@PathVariable Long postId, Principal principal) {
         String response = likeService.likeOrDislikePost(postId, principal.getName());

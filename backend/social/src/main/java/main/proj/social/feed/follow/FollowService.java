@@ -3,6 +3,7 @@ package main.proj.social.feed.follow;
 
 import lombok.RequiredArgsConstructor;
 import main.proj.social.user.UserRepository;
+import main.proj.social.user.dto.UserPublicDataResponse;
 import main.proj.social.user.entity.User;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
@@ -29,17 +30,28 @@ public class FollowService {
                     return "Unfollowed";
                 })
                 .orElseGet(() -> {
-                    Follow follow = new Follow(null, follower, followed);
+                    Follow follow = Follow.builder().
+                            follower(follower).
+                            followed(followed)
+                            .build();
                     followRepository.save(follow);
                     return "Followed";
                 });
     }
 
-    public List<User> getFollowedUsers(String username) {
+    public List<UserPublicDataResponse> getFollowed(String username) {
         User user = userRepository.findByUsername(username)
                 .orElseThrow(() -> new UsernameNotFoundException("User not found"));
-        return followRepository.findByFollower(user).stream()
-                .map(Follow::getFollowed)
+        return followRepository.findAllByFollowed(user).stream()
+                .map(follow -> new UserPublicDataResponse(follow.getFollowed().getId(), follow.getFollowed().getUsername()))
+                .collect(Collectors.toList());
+    }
+
+    public List<UserPublicDataResponse> getFollowers(String username) {
+        User user = userRepository.findByUsername(username)
+                .orElseThrow(() -> new UsernameNotFoundException("User not found"));
+        return followRepository.findAllByFollower(user).stream()
+                .map(follow -> new UserPublicDataResponse(follow.getFollower().getId(), follow.getFollower().getUsername()))
                 .collect(Collectors.toList());
     }
 }
