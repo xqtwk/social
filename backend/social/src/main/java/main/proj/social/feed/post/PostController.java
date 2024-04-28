@@ -1,13 +1,13 @@
 package main.proj.social.feed.post;
 
 import io.swagger.v3.oas.annotations.Operation;
-import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import main.proj.social.feed.like.LikeService;
 import main.proj.social.user.UserRepository;
+import main.proj.social.user.dto.UserPublicDto;
 import main.proj.social.user.entity.User;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.web.bind.annotation.*;
@@ -23,6 +23,7 @@ public class PostController {
     private final PostService postService;
     private final UserRepository userRepository;
     private final LikeService likeService;
+    private final PostRepository postRepository;
 
     @Operation(summary = "Get news feed for User")
     @GetMapping("/feed")
@@ -32,11 +33,18 @@ public class PostController {
         List<Post> feed = postService.getNewsFeedForUser(user.getId());
         return ResponseEntity.ok(feed);
     }
+
+    @Operation(summary = "Get post")
+    @GetMapping("{postId}")
+    public ResponseEntity<Post> GetPost(@PathVariable Long postId) {
+        Post post = postRepository.findById(postId).orElseThrow(() -> new EntityNotFoundException("User not found"));
+        return ResponseEntity.ok(post);
+    }
     @Operation(summary = "Create new post")
     @PostMapping
     public ResponseEntity<Post> createPost(@RequestBody PostRequest postRequest, Principal principal) {
         Post post = postService.createPost(principal.getName(), postRequest);
-        return ResponseEntity.status(HttpStatus.CREATED).body(post);
+        return ResponseEntity.ok(post);
     }
 
     @Operation(summary = "Edit post")
@@ -53,16 +61,16 @@ public class PostController {
         return ResponseEntity.ok().build();
     }
     @Operation(summary = "Get user's posts")
-    @GetMapping("/user")
-    public ResponseEntity<List<Post>> getPostsByUser(Principal principal) {
-        List<Post> posts = postService.getPostsByUser(principal.getName());
+    @GetMapping("/user/{username}")
+    public ResponseEntity<List<Post>> getPostsByUser(@PathVariable String username) {
+        List<Post> posts = postService.getPostsByUser(username);
         return ResponseEntity.ok(posts);
     }
 
     @Operation(summary = "Get post's like list(users who liked posts)")
     @GetMapping("/{postId}/likes")
-    public ResponseEntity<List<User>> getUsersWhoLikedPost(@PathVariable Long postId) {
-        List<User> users = likeService.getUsersWhoLikedPost(postId);
+    public ResponseEntity<List<UserPublicDto>> getUsersWhoLikedPost(@PathVariable Long postId) {
+        List<UserPublicDto> users = likeService.getUsersWhoLikedPost(postId);
         return ResponseEntity.ok(users);
     }
     @Operation(summary = "Get user's liked posts")
@@ -73,4 +81,5 @@ public class PostController {
         List<Post> posts = postService.getLikedPosts(user.getId());
         return ResponseEntity.ok(posts);
     }
+
 }
