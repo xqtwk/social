@@ -5,12 +5,15 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import main.proj.social.feed.like.LikeService;
+import main.proj.social.fileManagement.exceptions.StorageException;
 import main.proj.social.user.UserRepository;
 import main.proj.social.user.dto.UserPublicDto;
 import main.proj.social.user.entity.User;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.security.Principal;
 import java.util.List;
@@ -41,17 +44,30 @@ public class PostController {
         return ResponseEntity.ok(post);
     }
     @Operation(summary = "Create new post")
-    @PostMapping
-    public ResponseEntity<Post> createPost(@RequestBody PostRequest postRequest, Principal principal) {
-        Post post = postService.createPost(principal.getName(), postRequest);
-        return ResponseEntity.ok(post);
+    @PostMapping(consumes = "multipart/form-data")
+    public ResponseEntity<Post> createPost(@RequestPart("postRequest") PostRequest postRequest,
+                                           @RequestPart("photos") List<MultipartFile> photos,
+                                           Principal principal) {
+        try {
+            Post post = postService.createPost(principal.getName(), postRequest, photos);
+            return ResponseEntity.ok(post);
+        } catch (StorageException e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(null);
+        }
     }
 
     @Operation(summary = "Edit post")
-    @PutMapping("/{postId}")
-    public ResponseEntity<Post> editPost(@PathVariable Long postId, @RequestBody String newContent, Principal principal) {
-        Post post = postService.editPost(postId, principal.getName(), newContent);
-        return ResponseEntity.ok(post);
+    @PutMapping(value = "/{postId}", consumes = "multipart/form-data")
+    public ResponseEntity<Post> editPost(@PathVariable Long postId,
+                                         @RequestPart("newContent") String newContent,
+                                         @RequestPart("photos") List<MultipartFile> newPhotos,
+                                         Principal principal) {
+        try {
+            Post post = postService.editPost(postId, principal.getName(), newContent, newPhotos);
+            return ResponseEntity.ok(post);
+        } catch (StorageException e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(null);
+        }
     }
 
     @Operation(summary = "Delete post")

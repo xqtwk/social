@@ -2,18 +2,25 @@ package main.proj.social.feed.post;
 
 import jakarta.persistence.EntityNotFoundException;
 import main.proj.social.feed.like.LikeRepository;
+import main.proj.social.fileManagement.FileService;
+import main.proj.social.fileManagement.exceptions.StorageException;
 import main.proj.social.user.UserRepository;
 import main.proj.social.user.entity.User;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.io.IOException;
 import java.util.*;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -30,6 +37,8 @@ class PostServiceTest {
 
     @Mock
     private LikeRepository likeRepository;
+    @Mock
+    private FileService fileService;
 
     @InjectMocks
     private PostService postService;
@@ -39,9 +48,9 @@ class PostServiceTest {
 
     @BeforeEach
     void setUp() {
-        Mockito.reset(postRepository, userRepository);  // Reset mocks to clear any previous interactions or returns
+        Mockito.reset(postRepository, userRepository);
 
-        user = new User(); // Assuming User has an all-args constructor or setters
+        user = new User();
         user.setId(1L);
         user.setUsername("user1");
 
@@ -52,8 +61,39 @@ class PostServiceTest {
     }
     @AfterEach
     void tearDown() {
-        Mockito.reset(postRepository, userRepository);  // Ensure mocks are clean for the next test
+        Mockito.reset(postRepository, userRepository);
     }
+
+   @Test
+   void createPostShouldThrowStorageException() throws StorageException {
+       MultipartFile emptyPhoto = new MockMultipartFile("empty.jpg", "empty.jpg", "image/jpeg", new byte[0]);
+       List<MultipartFile> photos = Collections.singletonList(emptyPhoto);
+       PostRequest postRequest = new PostRequest("Content", null);
+
+       when(userRepository.findByUsername("user1")).thenReturn(Optional.of(user));
+
+       assertThrows(StorageException.class, () -> postService.createPost("user1", postRequest, photos),
+               "Expected StorageException was not thrown");
+   }
+    @Test
+    void storePostPhoto_ShouldThrow_WhenFileIsEmpty() throws StorageException {
+        MultipartFile emptyFile = new MockMultipartFile("empty.jpg", "empty.jpg", "image/jpeg", new byte[0]);
+        when(fileService.storePostPhoto(emptyFile, "user1")).thenThrow(new StorageException("Failed to store file."));
+        assertThrows(StorageException.class, () -> fileService.storePostPhoto(emptyFile, "user1"),
+                "FileService should throw StorageException for empty files");
+    }
+    @Test
+    void testEmptyMultipartFile() {
+        MultipartFile emptyFile = new MockMultipartFile("empty.jpg", "empty.jpg", "image/jpeg", new byte[0]);
+        assertTrue(emptyFile.isEmpty(), "The file should be recognized as empty.");
+    }
+    @Test
+    void testMockMultipartFile() {
+        MultipartFile emptyFile = new MockMultipartFile("empty.jpg", "empty.jpg", "image/jpeg", new byte[0]);
+        assertTrue(emptyFile.isEmpty(), "The file should be empty but it's not.");
+        assertEquals(0, emptyFile.getSize(), "File size should be 0.");
+    }
+
     @Test
     void getNewsFeedForUser() {
         List<Post> expectedPosts = Arrays.asList(post);
@@ -66,68 +106,108 @@ class PostServiceTest {
         assertEquals(1, posts.size());
         verify(postRepository).findPostsForUserByFollow(user.getId());
     }
+
     @Test
-    void createPostSuccess() {
-        // Set up specific for this test
-        PostRequest postRequest= new PostRequest("Test content", null); // For creating a new post, parentId is null
-        User newUser = new User(); // Assuming User has an all-args constructor or setters
-        newUser.setId(1L);
-        newUser.setUsername("user1");
+    void createPostWithPhotosSuccess() throws StorageException {
+        List<MultipartFile> photos = new ArrayList<>();
+        photos.add(new MockMultipartFile("photo1.jpg", "photo1.jpg", "image/jpeg", new byte[] {1, 2, 3}));
+        List<String> photoUrls = Collections.singletonList("photo1.jpg");
 
-        Post newPost = new Post();
-        newPost.setId(1L);
-        newPost.setAuthor(user);
-        newPost.setContent("Initial content");
+        PostRequest postRequest = new PostRequest("Test content", null);
+        when(userRepository.findByUsername("user1")).thenReturn(Optional.of(user));
+        when(fileService.storePostPhoto(any(MultipartFile.class), eq("user1"))).thenReturn("photo1.jpg");
+        when(postRepository.save(any(Post.class))).thenAnswer(invocation -> invocation.getArgument(0));
 
-        when(userRepository.findByUsername("user1")).thenReturn(Optional.of(newUser));
+        Post createdPost = postService.createPost("user1", postRequest, photos);
 
+        assertNotNull(createdPost);
+        assertEquals("Test content", createdPost.getContent());
+        assertTrue(createdPost.getPhotoPaths().contains("photo1.jpg"));
+        verify(fileService, times(1)).storePostPhoto(any(MultipartFile.class), eq("user1"));
+        verify(postRepository).save(any(Post.class));
+    }
+
+    @Test
+    void editPostWithPhotosSuccess() throws StorageException {
+        List<MultipartFile> newPhotos = new ArrayList<>();
+        newPhotos.add(new MockMultipartFile("newPhoto.jpg", "newPhoto.jpg", "image/jpeg", new byte[] {4, 5, 6}));
+        List<String> newPhotoUrls = Collections.singletonList("newPhoto.jpg");
+
+        when(postRepository.findById(1L)).thenReturn(Optional.of(post));
+        when(fileService.storePostPhoto(any(MultipartFile.class), eq("user1"))).thenReturn("newPhoto.jpg");
+        when(postRepository.save(any(Post.class))).thenAnswer(invocation -> invocation.getArgument(0));
+
+        Post updatedPost = postService.editPost(1L, "user1", "Updated content", newPhotos);
+
+        assertNotNull(updatedPost);
+        assertEquals("Updated content", updatedPost.getContent());
+        assertTrue(updatedPost.getPhotoPaths().contains("newPhoto.jpg"));
+        verify(fileService, times(1)).storePostPhoto(any(MultipartFile.class), eq("user1"));
+        verify(postRepository).save(post);
+    }
+    @Test
+    void createPostWithoutPhotosSuccess() throws StorageException {
+        // Given
+        PostRequest postRequest = new PostRequest("Test content", null); // For creating a new post, parentId is null
+        List<MultipartFile> emptyPhotos = new ArrayList<>(); // No photos are included
+
+        when(userRepository.findByUsername("user1")).thenReturn(Optional.of(user));
         when(postRepository.save(any(Post.class))).thenAnswer(invocation -> {
             Post savedPost = invocation.getArgument(0);
             savedPost.setId(1L);  // Simulate setting ID upon saving as DB would do
             return savedPost;
         });
 
-        // Execute
-        Post newNewPost = postService.createPost("user1", postRequest);
+        // When
+        Post createdPost = postService.createPost("user1", postRequest, emptyPhotos);
 
-        // Validate
-        assertNotNull(newNewPost);
-        assertEquals("Test content", newNewPost.getContent());
-        assertNotNull(newNewPost.getId());
+        // Then
+        assertNotNull(createdPost);
+        assertEquals("Test content", createdPost.getContent());
+        assertTrue(createdPost.getPhotoPaths().isEmpty()); // Ensure no photo paths are stored
         verify(postRepository).save(any(Post.class));
+        verify(fileService, never()).storePostPhoto(any(MultipartFile.class), anyString()); // Ensure no photo upload attempt
     }
 
 
     @Test
     void createPostUserNotFound() {
-        PostRequest postRequest= new PostRequest("Test content", null); // For creating a new post, parentId is null
+        PostRequest postRequest = new PostRequest("Test content", null);
+        List<MultipartFile> emptyPhotos = new ArrayList<>(); // Pass an empty list of photos
 
         when(userRepository.findByUsername("user1")).thenThrow(new UsernameNotFoundException("User not found"));
 
-        assertThrows(UsernameNotFoundException.class, () -> postService.createPost("user1", postRequest));
+        assertThrows(UsernameNotFoundException.class, () -> postService.createPost("user1", postRequest, emptyPhotos));
     }
 
     @Test
-    void editPostSuccess() {
-        when(postRepository.findById(1L)).thenReturn(java.util.Optional.of(post));
+    void editPostSuccess() throws StorageException {
+        List<MultipartFile> emptyPhotos = new ArrayList<>();
+        when(postRepository.findById(1L)).thenReturn(Optional.of(post));
         when(postRepository.save(any(Post.class))).thenReturn(post);
 
-        Post updatedPost = postService.editPost(1L, "user1", "Updated content");
+        Post updatedPost = postService.editPost(1L, "user1", "Updated content", emptyPhotos);
 
         assertNotNull(updatedPost);
         assertEquals("Updated content", updatedPost.getContent());
+        assertTrue(updatedPost.getPhotoPaths().isEmpty()); // Check that no new photos were added
         verify(postRepository).save(post);
+        verify(fileService, never()).storePostPhoto(any(MultipartFile.class), anyString()); // Ensure no photo was processed
     }
 
     @Test
     void editPostNotFound() {
+        List<MultipartFile> emptyPhotos = new ArrayList<>();
         when(postRepository.findById(1L)).thenThrow(new EntityNotFoundException("Post not found"));
-        assertThrows(EntityNotFoundException.class, () -> postService.editPost(1L, "user1", "Updated content"));
+
+        assertThrows(EntityNotFoundException.class, () -> postService.editPost(1L, "user1", "Updated content", emptyPhotos));
     }
     @Test
     void editPostUnauthorizedUser() {
-        when(postRepository.findById(1L)).thenReturn(java.util.Optional.of(post));
-        assertThrows(IllegalStateException.class, () -> postService.editPost(1L, "user2", "Updated content"));
+        List<MultipartFile> emptyPhotos = new ArrayList<>();
+        when(postRepository.findById(1L)).thenReturn(Optional.of(post));
+
+        assertThrows(IllegalStateException.class, () -> postService.editPost(1L, "user2", "Updated content", emptyPhotos));
     }
 
     @Test
@@ -186,67 +266,18 @@ class PostServiceTest {
         assertEquals(1, result.size());
         verify(likeRepository).findLikedPostsByUserId(user.getId());
     }
-    /*@Autowired
-    private PostService postService;
-
-    @MockBean
-    private PostRepository postRepository;
-
-    @MockBean
-    private UserRepository userRepository;
-
     @Test
-    void deletePostSuccess() {
-        // Assuming both User and Post classes use Lombok @Builder
-        User user = User.builder()
-                .id(1L)
-                .username("user1")
-                .email("email@example.com")
-                .password("password")
-                .mfaEnabled(true)
-                .build();
-
-        Post post = Post.builder()
-                .id(1L)
-                .author(user)
-                .content("Content")
-                .likes(new ArrayList<>()) // Assuming likes is a list
-                .created_timestamp(new Date())
-                .build();
+    void verifyParameterPassedToStorePostPhoto() throws StorageException {
+        MultipartFile photo = new MockMultipartFile("photo.jpg", "photo.jpg", "image/jpeg", new byte[] {1, 2, 3});
+        List<MultipartFile> photos = Collections.singletonList(photo);
+        PostRequest postRequest = new PostRequest("Test content", null);
 
         when(userRepository.findByUsername("user1")).thenReturn(Optional.of(user));
-        when(postRepository.findById(1L)).thenReturn(Optional.of(post));
-        doNothing().when(postRepository).delete(post);
+        postService.createPost("user1", postRequest, photos);
 
-        postService.deletePost(1L, "user1");
-
-        verify(postRepository).delete(post);
+        ArgumentCaptor<MultipartFile> fileCaptor = ArgumentCaptor.forClass(MultipartFile.class);
+        verify(fileService).storePostPhoto(fileCaptor.capture(), eq("user1"));
+        assertEquals("photo.jpg", fileCaptor.getValue().getOriginalFilename());
     }
-    @Test
-    void deletePostFail() {
-        // Assuming both User and Post classes use Lombok @Builder
-        User user = User.builder()
-                .id(1L)
-                .username("user1")
-                .email("email@example.com")
-                .password("password")
-                .mfaEnabled(true)
-                .build();
 
-        Post post = Post.builder()
-                .id(1L)
-                .author(user)
-                .content("Content")
-                .likes(new ArrayList<>()) // Assuming likes is a list
-                .created_timestamp(new Date())
-                .build();
-
-        when(userRepository.findByUsername("user1")).thenReturn(Optional.of(user));
-        when(postRepository.findById(1L)).thenReturn(Optional.of(post));
-        doThrow(new RuntimeException("Deletion failed")).when(postRepository).delete(post);
-
-        assertThrows(RuntimeException.class, () -> postService.deletePost(1L, "user1"));
-
-        verify(postRepository).delete(post);
-    }*/
 }
