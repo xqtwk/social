@@ -5,6 +5,7 @@ import lombok.RequiredArgsConstructor;
 import main.proj.social.feed.post.Post;
 import main.proj.social.feed.post.PostRepository;
 import main.proj.social.user.UserRepository;
+import main.proj.social.user.dto.UserPublicDto;
 import main.proj.social.user.entity.User;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
@@ -46,11 +47,21 @@ public class LikeService {
                 .collect(Collectors.toList());
     }
 
-    public List<User> getUsersWhoLikedPost(Long postId) {
+    public List<UserPublicDto> getUsersWhoLikedPost(Long postId) {
         Post post = postRepository.findById(postId)
                 .orElseThrow(() -> new EntityNotFoundException("Post not found"));
         return likeRepository.findByPost(post).stream()
-                .map(Like::getUser)
+                .map(foundPost -> {
+                    User user = foundPost.getUser();
+                    return new UserPublicDto(
+                            user.getId(),
+                            user.getUsername(),
+                            user.getLikes(),
+                            user.getPosts(),
+                            user.getFollows(),
+                            user.getFollowers()
+                    );
+                })
                 .collect(Collectors.toList());
     }
 

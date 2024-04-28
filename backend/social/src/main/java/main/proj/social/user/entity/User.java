@@ -47,12 +47,15 @@ public class User implements UserDetails {
     @OneToMany(mappedBy = "author")
     private List<Post> posts;
 
-
     @OneToMany(mappedBy = "follower", cascade = CascadeType.REMOVE)
     private List<Follow> follows;
 
     @OneToMany(mappedBy = "followed", cascade = CascadeType.REMOVE)
     private List<Follow> followers;
+
+    private String avatarPath;
+
+
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
         return role.getAuthorities();

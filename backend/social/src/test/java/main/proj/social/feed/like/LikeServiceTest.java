@@ -3,6 +3,7 @@ package main.proj.social.feed.like;
 import main.proj.social.feed.post.Post;
 import main.proj.social.feed.post.PostRepository;
 import main.proj.social.user.UserRepository;
+import main.proj.social.user.dto.UserPublicDto;
 import main.proj.social.user.entity.User;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -10,9 +11,6 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.mock.mockito.MockBean;
 
 import java.util.Arrays;
 import java.util.Date;
@@ -68,22 +66,31 @@ class LikeServiceTest {
 
     @Test
     void getUsersWhoLikedPostSuccess() {
+        User user1 = new User();
+        user1.setId(1L);
+        user1.setUsername("user1");
+
         User user2 = new User();
         user2.setId(2L);
         user2.setUsername("user2");
 
-        Like like1 = new Like(1L, user, post, new Date());
+        Post post = new Post(); // Assuming Post has at least an ID setter or constructor
+        post.setId(1L);
+
+        Like like1 = new Like(1L, user1, post, new Date());
         Like like2 = new Like(2L, user2, post, new Date());
 
         when(postRepository.findById(1L)).thenReturn(Optional.of(post));
         when(likeRepository.findByPost(post)).thenReturn(Arrays.asList(like1, like2));
 
-        List<User> usersWhoLiked = likeService.getUsersWhoLikedPost(1L);
+        List<UserPublicDto> usersWhoLiked = likeService.getUsersWhoLikedPost(1L);
 
         assertNotNull(usersWhoLiked);
         assertEquals(2, usersWhoLiked.size());
-        assertTrue(usersWhoLiked.contains(user));
-        assertTrue(usersWhoLiked.contains(user2));
+        assertEquals(usersWhoLiked.get(0).getId(), user1.getId());
+        assertEquals(usersWhoLiked.get(1).getId(), user2.getId());
+        assertEquals(usersWhoLiked.get(0).getUsername(), user1.getUsername());
+        assertEquals(usersWhoLiked.get(1).getUsername(), user2.getUsername());
 
         verify(likeRepository).findByPost(post);
     }

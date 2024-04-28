@@ -5,12 +5,12 @@ import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 
 import main.proj.social.user.dto.ChangePasswordRequest;
-import main.proj.social.user.dto.UserPrivateDataResponse;
+import main.proj.social.user.dto.UserPrivateDto;
+import main.proj.social.user.dto.UserPublicDto;
 import main.proj.social.user.entity.User;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.security.Principal;
 
@@ -36,6 +36,7 @@ public class UserService {
 
         userRepository.save(user);
     }
+
     public String getUsernameById(Long id) {
         return userRepository.findById(id)
                 .map(User::getUsername)
@@ -43,18 +44,37 @@ public class UserService {
     }
 
     // @Transactional
-    public UserPrivateDataResponse getPrivateUserData(Principal connectedUser) {
+    public UserPrivateDto getPrivateUserData(Principal connectedUser) {
         User principalUser = (User) ((UsernamePasswordAuthenticationToken) connectedUser).getPrincipal();
         User user = userRepository.findByUsername(principalUser.getUsername())
                 .orElseThrow(() -> new EntityNotFoundException("User not found"));
 
-        return new UserPrivateDataResponse(
-                user.getId(),
-                user.getUsername(),
-                user.getEmail(),
-                user.getRole(),
-                user.isMfaEnabled()
-        );
+        return UserPrivateDto.builder()
+                .id(user.getId())
+                .username(user.getUsername())
+                .email(user.getEmail())
+                .role(user.getRole())
+                .mfaEnabled(user.isMfaEnabled())
+                .likes(user.getLikes())
+                .posts(user.getPosts())
+                .follows(user.getFollows())
+                .followers(user.getFollowers())
+                .build();
+
+    }
+
+    public UserPublicDto getPublicUserData(User user) {
+        userRepository.findByUsername(user.getUsername())
+                .orElseThrow(() -> new EntityNotFoundException("User not found"));
+
+        return UserPublicDto.builder()
+                .id(user.getId())
+                .username(user.getUsername())
+                .likes(user.getLikes())
+                .posts(user.getPosts())
+                .follows(user.getFollows())
+                .followers(user.getFollowers())
+                .build();
     }
 
 }

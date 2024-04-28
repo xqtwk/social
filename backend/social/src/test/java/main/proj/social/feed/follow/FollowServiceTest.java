@@ -1,7 +1,7 @@
 package main.proj.social.feed.follow;
 
 import main.proj.social.user.UserRepository;
-import main.proj.social.user.dto.UserPublicDataResponse;
+import main.proj.social.user.dto.UserPublicDto;
 import main.proj.social.user.entity.User;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -11,7 +11,6 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
@@ -87,7 +86,7 @@ class FollowServiceTest {
         when(followRepository.findAllByFollowed(user1)).thenReturn(List.of(follow));
 
         // Executing the method to test
-        List<UserPublicDataResponse> followedUsers = followService.getFollowed("user1");
+        List<UserPublicDto> followedUsers = followService.getFollowed("user1");
 
         // Assertions to check if the results are as expected
         assertNotNull(followedUsers);
@@ -119,7 +118,7 @@ class FollowServiceTest {
         when(userRepository.findByUsername("user1")).thenReturn(Optional.of(user1));
         when(followRepository.findAllByFollowed(user1)).thenReturn(Collections.emptyList());
 
-        List<UserPublicDataResponse> followedUsers = followService.getFollowed("user1");
+        List<UserPublicDto> followedUsers = followService.getFollowed("user1");
 
         assertTrue(followedUsers.isEmpty());
     }
@@ -129,7 +128,7 @@ class FollowServiceTest {
         when(userRepository.findByUsername("user1")).thenReturn(Optional.of(user1));
         when(followRepository.findAllByFollower(user1)).thenReturn(Collections.emptyList());
 
-        List<UserPublicDataResponse> followers = followService.getFollowers("user1");
+        List<UserPublicDto> followers = followService.getFollowers("user1");
 
         assertTrue(followers.isEmpty());
     }
@@ -159,7 +158,7 @@ class FollowServiceTest {
         when(userRepository.findByUsername("user1")).thenReturn(Optional.of(user1));
         when(followRepository.findAllByFollower(user1)).thenReturn(List.of(follow));
 
-        List<UserPublicDataResponse> followers = followService.getFollowers("user1");
+        List<UserPublicDto> followers = followService.getFollowers("user1");
 
         assertNotNull(followers);
         assertEquals(1, followers.size());

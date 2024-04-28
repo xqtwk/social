@@ -25,3 +25,5 @@ application:
         expiration: 604800000 # 7 days(168h)
 server:
   shutdown: graceful
+storage:
+  location: ./storage

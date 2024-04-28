@@ -6,6 +6,7 @@ import lombok.*;
 import main.proj.social.feed.like.Like;
 import main.proj.social.user.entity.User;
 
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
@@ -38,6 +39,9 @@ public class Post {
     private List<Post> replies;  // Replies to this post
 
     private Date created_timestamp;
+
+    @ElementCollection(fetch = FetchType.LAZY)
+    private List<String> photoPaths = new ArrayList<>();
 
     @PrePersist
     protected void onCreate() {
