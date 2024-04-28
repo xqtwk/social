@@ -29,7 +29,7 @@ public class ChatController {
     private final ChatRoomService chatRoomService;
     private final UserRepository userRepository;
 
-    @MessageMapping("/chat")
+    @MessageMapping("api/v1/chat")
     public void processMessage(@Payload ChatMessage chatMessage) {
         if (!Objects.equals(chatMessage.getRecipient(), chatMessage.getSender())) {
             ChatMessage savedMsg = chatMessageService.save(chatMessage);
@@ -47,7 +47,7 @@ public class ChatController {
         }
     }
 
-    @GetMapping("/messages/{senderUsername}/{recipientUsername}")
+    @GetMapping("api/v1/messages/{senderUsername}/{recipientUsername}")
     public ResponseEntity<?> findChatMessages(@PathVariable String senderUsername,
                                               @PathVariable String recipientUsername,
                                               Principal principal) {
@@ -68,7 +68,7 @@ public class ChatController {
          List<String> chatList = chatRoomService.getChatListForUser(username);
          return ResponseEntity.ok(chatList);
      }*/
-    @GetMapping("/chat-list")
+    @GetMapping("api/v1/chat-list")
     public ResponseEntity<List<String>> getChatList(Principal principal) {
         List<String> chatList = chatRoomService.getChatListForUser(principal);
         return ResponseEntity.ok(chatList);
