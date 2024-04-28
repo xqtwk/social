@@ -4,6 +4,7 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
+import main.proj.social.user.dto.UserPublicDataResponse;
 import main.proj.social.user.entity.User;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -25,10 +26,17 @@ public class FollowController {
         return ResponseEntity.ok(response);
     }
 
-    @Operation(summary = "Get users that user follows")
-    @GetMapping("/user/following")
-    public ResponseEntity<List<User>> getFollowedUsers(Principal principal) {
-        List<User> users = followService.getFollowedUsers(principal.getName());
+    @Operation(security = {}, summary = "Get users that user follows")
+    @GetMapping("/user/following/{username}")
+    public ResponseEntity<List<UserPublicDataResponse>> getFollowedUsers(@PathVariable String username) {
+        List<UserPublicDataResponse> users = followService.getFollowed(username);
+        return ResponseEntity.ok(users);
+    }
+
+    @Operation(security = {}, summary = "Get user followers")
+    @GetMapping("/user/follows/{username}")
+    public ResponseEntity<List<UserPublicDataResponse>> getUserFollowers(@PathVariable String username) {
+        List<UserPublicDataResponse> users = followService.getFollowers(username);
         return ResponseEntity.ok(users);
     }
 }

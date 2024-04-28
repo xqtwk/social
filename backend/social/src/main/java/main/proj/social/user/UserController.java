@@ -2,12 +2,11 @@ package main.proj.social.user;
 
 
 import io.swagger.v3.oas.annotations.Operation;
-import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import main.proj.social.user.dto.ChangePasswordRequest;
 import main.proj.social.user.dto.UserPrivateDataResponse;
-import main.proj.social.user.dto.UserPublicDataRequest;
+import main.proj.social.user.dto.UserPublicDataResponse;
 import main.proj.social.user.entity.User;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -35,16 +34,16 @@ public class UserController {
 
     @Operation(summary = "Get public user data")
     @GetMapping("/{username}")
-    public ResponseEntity<UserPublicDataRequest> getPublicUserData(@PathVariable String username) {
+    public ResponseEntity<UserPublicDataResponse> getPublicUserData(@PathVariable String username) {
         Optional<User> optionalUser = userRepository.findByUsername(username);
         if (optionalUser.isEmpty()) {
             return ResponseEntity.notFound().build();
         }
         User user = optionalUser.get();
-        UserPublicDataRequest userPublicDataRequest = new UserPublicDataRequest(
+        UserPublicDataResponse userPublicDataResponse = new UserPublicDataResponse(
                 user.getId(),
                 user.getUsername());
-        return ResponseEntity.ok(userPublicDataRequest);
+        return ResponseEntity.ok(userPublicDataResponse);
     }
 
     @Operation(summary = "Get private user data")
