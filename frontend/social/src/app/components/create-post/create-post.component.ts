@@ -5,7 +5,7 @@ import {Component, ElementRef, ViewChild} from '@angular/core';
   standalone: true,
   imports: [],
   templateUrl: './create-post.component.html',
-  styleUrl: './create-post.component.css'
+  styleUrl: './create-post.component.scss'
 })
 export class CreatePostComponent {
   @ViewChild('textAreaElement') textAreaElement: ElementRef | undefined;

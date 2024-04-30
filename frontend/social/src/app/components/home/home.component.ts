@@ -10,7 +10,7 @@ import {CreatePostComponent} from "../create-post/create-post.component";
     CreatePostComponent
   ],
   templateUrl: './home.component.html',
-  styleUrl: './home.component.css'
+  styleUrl: './home.component.scss'
 })
 export class HomeComponent {
 
