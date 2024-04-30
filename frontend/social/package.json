@@ -6,7 +6,8 @@
     "start": "ng serve",
     "build": "ng build",
     "watch": "ng build --watch --configuration development",
-    "test": "ng test"
+    "test": "ng test",
+    "api-gen": "openapi-generator-cli generate -i openapi.json -g typescript-angular -o src/app/services/openapi --additional-properties=ngVersion=17.1.2,npmName=restClient,supportsES6=true,npmVersion=6.9.0,fileNaming=kebab-case,withInterfaces=true\""
   },
   "private": true,
   "dependencies": {
@@ -37,6 +38,7 @@
     "karma-coverage": "~2.2.0",
     "karma-jasmine": "~5.1.0",
     "karma-jasmine-html-reporter": "~2.1.0",
+    "sass": "^1.75.0",
     "typescript": "~5.3.2"
   }
 }
