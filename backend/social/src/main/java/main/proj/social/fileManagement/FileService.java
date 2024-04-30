@@ -40,8 +40,6 @@ public class FileService {
     }
 
     public String storePostPhoto(MultipartFile file, String username) throws StorageException {
-        System.out.println("storepostphoto invoked");
-        System.out.println("File is empty: " + file.isEmpty() + ", Size: " + file.getSize());
         if (file.isEmpty()) {
             throw new StorageException("Failed to store empty file.");
         }
@@ -55,8 +53,6 @@ public class FileService {
     }
 
     private void validateFile(MultipartFile file) throws StorageException {
-        System.out.println("File is empty: " + file.isEmpty() + ", File size: " + file.getSize());
-
         if (file.isEmpty()) {
             throw new StorageException("Failed to store empty file.");
         }

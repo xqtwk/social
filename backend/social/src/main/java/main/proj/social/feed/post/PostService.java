@@ -30,10 +30,8 @@ public class PostService {
 
     @Transactional
     public Post createPost(String username, PostRequest postRequest, List<MultipartFile> photos) throws StorageException {
-        System.out.println("entering createpost");
         User user = userRepository.findByUsername(username)
                 .orElseThrow(() -> new UsernameNotFoundException("User not found"));
-        System.out.println("after user check");
 
         Post post = Post.builder()
                 .author(user)

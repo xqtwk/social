@@ -26,4 +26,4 @@ application:
 server:
   shutdown: graceful
 storage:
-  location: ./storage
+  location: ./storage # for files(only when there's no separate storage / cloud)
